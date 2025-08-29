@@ -1,4 +1,11 @@
-const themes: Record<string, any> = {
+interface Theme {
+  text: Record<string, string>;
+  background: Record<string, string>;
+  border: Record<string, string>;
+  accent: Record<string, string>;
+}
+
+const themes: Record<string, Theme> = {
   'default': {
     text: {
       primary: '#F7F1FF',

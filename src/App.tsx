@@ -3,14 +3,26 @@ import { Box, Text, useInput } from 'ink';
 import { Header } from './components/Header';
 import { Board } from './components/Board';
 import { Footer } from './components/Footer';
-import { authService } from './services/authService';
 import { useLogger } from './hooks/useLogger';
 import { useMode } from './contexts/ModeContext';
+import { useData } from './contexts/DataContext';
+import { pullRequestService } from './services/pullRequestService';
+import { githubService } from './services/githubService';
+import { SidePanel } from './panels/side';
+
+const help = `Help:
+← → : Navigate columns
+h   : Toggle help
+/   : Enter edit mode
+s   : Show side panel
+q   : Quit`;
 
 export const App: React.FC = () => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [showHelp, setShowHelp] = useState(false);
+  const [showSidePanel, setShowSidePanel] = useState(false);
   const { mode, switchToEdit } = useMode();
+  const { actions } = useData();
 
   const logger = useLogger();
 
@@ -25,7 +37,10 @@ export const App: React.FC = () => {
       setSelectedIndex(prev => prev + 1);
       break;
     case input === 'h':
-      setShowHelp(!showHelp);
+      setShowHelp(prev => !prev);
+      break;
+    case input === 's':
+      setShowSidePanel(prev => !prev);
       break;
     case input === '/':
       switchToEdit();
@@ -37,12 +52,25 @@ export const App: React.FC = () => {
   });
 
   useEffect(() => {
-    (async () => {
-      const token = await authService.getGithubToken();
-      logger.debug(token);
-    })();
+    const fetchPullRequests = async () => {
+      try {
+        actions.setPullRequestsLoading(true);
+        logger.debug('Initializing GitHub service...');
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+        await githubService.initialize();
+        logger.debug('GitHub service initialized');
+
+        const pullRequests = await pullRequestService.getAssignedPullRequests();
+        logger.debug(`Fetched ${pullRequests.length} pull requests`);
+
+        actions.setPullRequestsData(pullRequests);
+      } catch (error) {
+        logger.error('Failed to fetch pull requests:', error);
+        actions.setPullRequestsError(error instanceof Error ? error.message : 'Unknown error');
+      }
+    };
+
+    fetchPullRequests();
   }, []);
 
   return (
@@ -50,20 +78,17 @@ export const App: React.FC = () => {
       <Header />
       <Box flexGrow={1}>
         {showHelp ? (
-          <Box padding={1}>
-            <Text>
-              {`Help:
-← → : Navigate columns
-h   : Toggle help
-/   : Enter edit mode
-q   : Quit`}
-            </Text>
+          <Box display='flex' padding={1}>
+            <Text>{help}</Text>
           </Box>
         ) : (
-          <Board selectedIndex={selectedIndex} />
+          <Box width="100%" display='flex' flexDirection='row'>
+            <Board selectedIndex={selectedIndex} />
+            {showSidePanel && <SidePanel />}
+          </Box>
         )}
       </Box>
-      <Footer />
+      <Footer repo='test_repo' user='username' />
     </Box>
   );
 };
