@@ -1,14 +1,14 @@
 import React from 'react';
 import { Box, Text } from 'ink';
+import { colors } from '../styles/theme';
+import { Icon } from './Icon';
 
-const Footer: React.FC = () => {
+export const Footer: React.FC = () => {
   return (
-    <Box borderStyle="round" borderColor="gray" padding={1}>
-      <Text color="gray">
-        Press 'h' for help | 'q' to quit | ← → to navigate
+    <Box borderStyle="round" borderColor={colors.border.primary} padding={1}>
+      <Text color={colors.text.primary}>
+        Press 'h' for help | 'q' to quit | ← → to navigate <Icon icon='pull_request' color={colors.accent.purple} />
       </Text>
     </Box>
   );
 };
-
-export default Footer;

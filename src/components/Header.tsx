@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box, Text } from 'ink';
 
-const Header: React.FC = () => {
+export const Header: React.FC = () => {
   return (
     <Box borderStyle="round" borderColor="cyan" padding={1}>
       <Text bold color="cyan">
@@ -10,5 +10,3 @@ const Header: React.FC = () => {
     </Box>
   );
 };
-
-export default Header;

@@ -1,12 +1,15 @@
 import React from 'react';
 import { Box } from 'ink';
-import Column from './Column';
+import { Column } from './Column';
+import { InputBox } from './InputBox';
+import { useLogger } from '../hooks/useLogger';
+import { useMode } from '../contexts/ModeContext';
 
 interface BoardProps {
   selectedIndex: number;
 }
 
-const Board: React.FC<BoardProps> = ({ selectedIndex }) => {
+export const Board: React.FC<BoardProps> = ({ selectedIndex }) => {
   const columns = [
     {
       title: 'To Do',
@@ -30,8 +33,14 @@ const Board: React.FC<BoardProps> = ({ selectedIndex }) => {
     },
   ];
 
+  const logger = useLogger();
+  const { mode } = useMode();
+
+  logger.error('Show board');
+
   return (
     <Box flexDirection="row" padding={1}>
+      <InputBox isFocused={mode === 'edit' }></InputBox>
       {columns.map((column, index) => (
         <Column
           key={column.title}
@@ -44,5 +53,3 @@ const Board: React.FC<BoardProps> = ({ selectedIndex }) => {
     </Box>
   );
 };
-
-export default Board;

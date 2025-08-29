@@ -1,5 +1,10 @@
 #!/usr/bin/env node
 import { render } from 'ink';
-import App from './components/App';
+import { App } from './App';
+import { ModeProvider } from './contexts/ModeContext';
 
-render(<App />);
+render(
+  <ModeProvider>
+    <App />
+  </ModeProvider>,
+);

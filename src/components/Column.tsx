@@ -1,5 +1,6 @@
 import React from 'react';
 import { Box, Text } from 'ink';
+import { colors } from '../styles/theme';
 
 interface ColumnProps {
   title: string;
@@ -8,14 +9,16 @@ interface ColumnProps {
   isSelected: boolean;
 }
 
-const Column: React.FC<ColumnProps> = ({ title, items, color, isSelected }) => {
+export const Column: React.FC<ColumnProps> = ({ title, items, color, isSelected }) => {
+  const borderColor = isSelected ? colors.border.primary : colors.border.faint;
+
   return (
     <Box
       flexDirection="column"
       marginRight={2}
       minWidth={25}
       borderStyle={isSelected ? 'double' : 'single'}
-      borderColor={isSelected ? 'white' : 'gray'}
+      borderColor={borderColor}
       padding={1}
     >
       <Text bold color={color} underline>
@@ -36,5 +39,3 @@ const Column: React.FC<ColumnProps> = ({ title, items, color, isSelected }) => {
     </Box>
   );
 };
-
-export default Column;
