@@ -1,17 +1,18 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { Box, Text } from 'ink';
 import { Column } from './Column';
 import { InputBox } from './InputBox';
 import { LoadingSpinner } from './LoadingSpinner';
 import { useLogger } from '../hooks/useLogger';
 import { useMode } from '../contexts/ModeContext';
-import { useData } from '../contexts/DataContext';
 import { colors } from '../styles/theme';
 import { InteractiveTable } from './InteractiveTable';
 import { prIconFormatter } from '../formatters/prIconFormatter';
 import { getIcon } from '../styles/icons';
 import open from 'open';
-import { PullRequest } from '../services/githubService';
+import { useGetPullRequestsQuery } from '../__generated__/graphql';
+import { githubService } from '../services/githubService';
+import { useLoadingState } from '../hooks/useLoadingState';
 
 interface BoardProps {
   selectedIndex: number;
@@ -20,24 +21,66 @@ interface BoardProps {
 export const Board: React.FC<BoardProps> = ({ selectedIndex }) => {
   const logger = useLogger();
   const { mode } = useMode();
-  const { state } = useData();
+  const [repo, setRepo] = useState<{owner: string; name: string} | null>(null);
+  const loadingState = useLoadingState();
 
-  logger.debug('Rendering board');
+  // Initialize GitHub service and get repository info
+  useEffect(() => {
+    const initializeService = async () => {
+      try {
+        await githubService.initialize();
+        const repoInfo = githubService.getRepository();
+        setRepo(repoInfo);
+      } catch (error) {
+        logger.error('Failed to initialize GitHub service:', error);
+      }
+    };
 
-  const { pullRequests } = state;
-  const { data, loading, error } = pullRequests;
+    initializeService();
+  }, [logger]);
 
-  logger.debug(JSON.stringify(pullRequests));
+  // Use generated GraphQL hook
+  const { data, loading, error, refetch } = useGetPullRequestsQuery({
+    variables: {
+      owner: repo?.owner || 'owner',
+      name: repo?.name || 'repo',
+      first: 20,
+    },
+    skip: !repo, // Skip query if repo info is not available
+    fetchPolicy: 'cache-and-network', // Ensure refetch works properly
+  });
+
+  // Handle refetch with loading state
+  const handleRefetch = async () => {
+    loadingState.start();
+    logger.debug('Refetching pull requests...');
+    try {
+      await refetch();
+      logger.debug('Refetch completed successfully');
+    } catch (error) {
+      logger.error('Refetch failed:', error);
+    } finally {
+      loadingState.finish();
+    }
+  };
+
+  logger.debug('Rendering board', { data, loading, error });
+
+  const pullRequests = useMemo(() => {
+    return data?.repository?.pullRequests?.nodes?.filter(Boolean) || [];
+  }, [data]);
 
   // Transform PRs into items for the Review column
-  const prItems = data.map(pr => `#${pr.number}: ${pr.title}`);
+  const prItems = pullRequests.map(pr => pr ? `#${pr.number}: ${pr.title}` : '');
 
   const prData = useMemo(() => {
-    return data.map(pr => ({
+    return pullRequests.filter((pr): pr is NonNullable<typeof pr> => Boolean(pr)).map(pr => ({
       ...pr,
       icon: prIconFormatter(pr),
     }));
-  }, [data]);
+  }, [pullRequests]);
+
+  const isLoading = loading || loadingState.isLoading;
 
   const columns = [
     {
@@ -62,10 +105,10 @@ export const Board: React.FC<BoardProps> = ({ selectedIndex }) => {
     },
   ];
 
-  if (loading) {
+  if (isLoading) {
     return (
       <Box flexDirection="column" alignItems="center" justifyContent="center" padding={2}>
-        <LoadingSpinner text="Loading pull requests..." />
+        <LoadingSpinner text={loadingState.isLoading ? 'Refreshing pull requests...' : 'Loading pull requests...'} />
       </Box>
     );
   }
@@ -74,7 +117,7 @@ export const Board: React.FC<BoardProps> = ({ selectedIndex }) => {
     return (
       <Box flexDirection="column" alignItems="center" justifyContent="center" padding={2}>
         <Text color={colors.text.error}>
-          Error loading pull requests: {error}
+          Error loading pull requests: {error.message}
         </Text>
       </Box>
     );
@@ -97,7 +140,9 @@ export const Board: React.FC<BoardProps> = ({ selectedIndex }) => {
       <InteractiveTable
         fields={fields}
         data={prData}
-        onOpen={(row: PullRequest) => open(row.url)}
+        isLoading={isLoading}
+        onOpen={(row) => open(row.url)}
+        onReloadRequested={handleRefetch}
         showSelectionIndicator
       />
       <Box flexDirection="row">

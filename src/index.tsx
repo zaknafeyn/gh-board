@@ -1,14 +1,15 @@
 #!/usr/bin/env node
 import 'dotenv/config';
 import { render } from 'ink';
+import { ApolloProvider } from '@apollo/client';
 import { App } from './App';
 import { ModeProvider } from './contexts/ModeContext';
-import { DataProvider } from './contexts/DataContext';
+import { apolloClient } from './lib/apollo-client';
 
 render(
-  <ModeProvider>
-    <DataProvider>
+  <ApolloProvider client={apolloClient}>
+    <ModeProvider>
       <App />
-    </DataProvider>
-  </ModeProvider>,
+    </ModeProvider>
+  </ApolloProvider>,
 );

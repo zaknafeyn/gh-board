@@ -1,7 +1,11 @@
-import { PullRequest } from '../services/githubService';
 import { getIcon } from '../styles/icons';
+import type { PullRequestState } from '../__generated__/graphql';
 
-export const prIconFormatter = (pr: PullRequest) => {
+interface PullRequestLike {
+  state: PullRequestState;
+}
+
+export const prIconFormatter = (pr: PullRequestLike) => {
   switch (pr.state) {
   case 'OPEN':
     return getIcon('pull_request');

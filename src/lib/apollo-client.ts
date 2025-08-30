@@ -1,12 +1,7 @@
-import { ApolloClient, InMemoryCache, ApolloLink, Observable } from '@apollo/client';
+import { ApolloClient, InMemoryCache, ApolloLink, Observable, HttpLink } from '@apollo/client';
 import { authService } from '../services/authService';
 
-const httpLink = new ApolloLink((operation, forward) => {
-  operation.setContext({
-    uri: process.env.OCTOKIT_BASE_URL || 'https://api.github.com/graphql',
-  });
-  return forward(operation);
-});
+const httpLink = new HttpLink({ uri: process.env.OCTOKIT_BASE_URL ? `${process.env.OCTOKIT_BASE_URL}/graphql` : 'https://api.github.com/graphql' });
 
 const authLink = new ApolloLink((operation, forward) => {
   return new Observable(observer => {
@@ -27,31 +22,31 @@ const authLink = new ApolloLink((operation, forward) => {
   });
 });
 
-const cache = new InMemoryCache({
-  typePolicies: {
-    Repository: {
-      fields: {
-        pullRequests: {
-          keyArgs: ['states'],
-          merge(existing, incoming, { args }) {
-            if (!existing || !args?.after) {
-              return incoming;
-            }
+// const cache = new InMemoryCache({
+//   typePolicies: {
+//     Repository: {
+//       fields: {
+//         pullRequests: {
+//           keyArgs: ['states'],
+//           merge(existing, incoming, { args }) {
+//             if (!existing || !args?.after) {
+//               return incoming;
+//             }
 
-            return {
-              ...incoming,
-              nodes: [...(existing.nodes || []), ...(incoming.nodes || [])],
-            };
-          },
-        },
-      },
-    },
-  },
-});
+//             return {
+//               ...incoming,
+//               nodes: [...(existing.nodes || []), ...(incoming.nodes || [])],
+//             };
+//           },
+//         },
+//       },
+//     },
+//   },
+// });
 
 export const apolloClient = new ApolloClient({
   link: ApolloLink.from([authLink, httpLink]),
-  cache,
+  cache: new InMemoryCache(),
   defaultOptions: {
     watchQuery: {
       errorPolicy: 'all',

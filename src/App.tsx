@@ -1,13 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Box, useInput } from 'ink';
 import { Header } from './layout/Header';
 import { Board } from './components/Board';
 import { Footer } from './layout/Footer';
-import { useLogger } from './hooks/useLogger';
 import { useMode } from './contexts/ModeContext';
-import { useData } from './contexts/DataContext';
-import { pullRequestService } from './services/pullRequestService';
-import { githubService } from './services/githubService';
 import { SidePanel } from './layout/Side';
 import { Help } from './components/Help';
 import { BottomPanel } from './layout/Bottom';
@@ -18,9 +14,6 @@ export const App: React.FC = () => {
   const [showSidePanel, setShowSidePanel] = useState(false);
   const [showBottomPanel, setShowBottomPanel] = useState(false);
   const { mode, switchToEdit } = useMode();
-  const { actions } = useData();
-
-  const logger = useLogger();
 
   useInput((input, key) => {
     if (mode !== 'command') return;
@@ -48,28 +41,6 @@ export const App: React.FC = () => {
       break;
     }
   });
-
-  useEffect(() => {
-    const fetchPullRequests = async () => {
-      try {
-        actions.setPullRequestsLoading(true);
-        logger.debug('Initializing GitHub service...');
-
-        await githubService.initialize();
-        logger.debug('GitHub service initialized');
-
-        const pullRequests = await pullRequestService.getAssignedPullRequests();
-        logger.debug(`Fetched ${pullRequests.length} pull requests`);
-
-        actions.setPullRequestsData(pullRequests);
-      } catch (error) {
-        logger.error('Failed to fetch pull requests:', error);
-        actions.setPullRequestsError(error instanceof Error ? error.message : 'Unknown error');
-      }
-    };
-
-    fetchPullRequests();
-  }, []);
 
   return (
     <Box flexDirection="column" height="100%">
