@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Text, Box, useInput } from 'ink';
 import { colors } from '../../styles/theme';
 import { LoadingSpinner } from '../LoadingSpinner';
 import { useLogger } from '../../hooks/useLogger';
+import { useMode } from '../../contexts/ModeContext';
+import { Icon } from '../Icon';
 
 export interface TableField {
   fieldName: string;
@@ -10,22 +12,32 @@ export interface TableField {
   color?: string;
 }
 
-export interface InteractiveTableProps {
+export interface InteractiveTableProps<TRow extends Record<string, unknown> = Record<string, unknown>> {
   fields: TableField[];
-  data: Array<Record<string, any>>;
+  data: Array<TRow>;
   isLoading?: boolean;
+  onOpen?: (row: TRow) => void,
+  onReloadRequested?: () => void;
+  showSelectionIndicator?: boolean;
 }
 
-export const InteractiveTable: React.FC<InteractiveTableProps> = ({
+export const InteractiveTable = <TRow extends Record<string, unknown> = Record<string, unknown>>({
   fields,
   data,
   isLoading = false,
-}) => {
+  onOpen,
+  onReloadRequested,
+  showSelectionIndicator = false,
+}: InteractiveTableProps<TRow>) => {
   const [selectedRow, setSelectedRow] = useState(0);
+  const { mode } = useMode();
+
   const logger = useLogger();
 
-  useInput((_, key) => {
+  useInput((input, key) => {
     if (isLoading || data.length === 0) return;
+
+    if (mode !== 'command') return;
 
     switch (true) {
     case key.upArrow:
@@ -36,6 +48,12 @@ export const InteractiveTable: React.FC<InteractiveTableProps> = ({
       break;
     case key.return:
       logger.info('Selected row data:', data[selectedRow]);
+      break;
+    case input === 'o':
+      onOpen?.(data[selectedRow]);
+      break;
+    case input === 'r':
+      onReloadRequested?.();
       break;
     default:
       break;
@@ -68,6 +86,13 @@ export const InteractiveTable: React.FC<InteractiveTableProps> = ({
     <Box flexDirection="column">
       <Box borderStyle="single" borderColor={colors.border.primary}>
         <Box flexDirection="row" paddingX={1}>
+          {showSelectionIndicator && (
+            <Box marginRight={2} minWidth={1}>
+              <Text color={colors.text.primary} bold>
+                {' '}
+              </Text>
+            </Box>
+          )}
           {fields.map((field, index) => (
             <Box key={field.fieldName} marginRight={index < fields.length - 1 ? 2 : 0} minWidth={15}>
               <Text color={field.color || colors.text.primary} bold>
@@ -86,12 +111,16 @@ export const InteractiveTable: React.FC<InteractiveTableProps> = ({
               flexDirection="row"
               paddingX={1}
             >
+              {showSelectionIndicator && (
+                <Box marginRight={2} minWidth={1}>
+                  <Text color={rowIndex === selectedRow ? colors.text.primary : colors.text.secondary}>
+                    {rowIndex === selectedRow ? <Icon icon='chevron-right'/> : ' '}
+                  </Text>
+                </Box>
+              )}
               {fields.map((field, fieldIndex) => (
                 <Box key={field.fieldName} marginRight={fieldIndex < fields.length - 1 ? 2 : 0} minWidth={15}>
-                  <Text
-                    color={rowIndex === selectedRow ? colors.text.primary : colors.text.secondary}
-                    inverse={rowIndex === selectedRow}
-                  >
+                  <Text color={rowIndex === selectedRow ? colors.text.primary : colors.text.secondary}>
                     {String(row[field.fieldName] || '')}
                   </Text>
                 </Box>
@@ -99,12 +128,6 @@ export const InteractiveTable: React.FC<InteractiveTableProps> = ({
             </Box>
           ))}
         </Box>
-      </Box>
-
-      <Box marginTop={1}>
-        <Text color={colors.text.faint}>
-          Use ↑/↓ to navigate, Enter to log selected row
-        </Text>
       </Box>
     </Box>
   );

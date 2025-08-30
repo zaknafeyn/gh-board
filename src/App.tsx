@@ -1,26 +1,22 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Text, useInput } from 'ink';
-import { Header } from './components/Header';
+import { Box, useInput } from 'ink';
+import { Header } from './layout/Header';
 import { Board } from './components/Board';
-import { Footer } from './components/Footer';
+import { Footer } from './layout/Footer';
 import { useLogger } from './hooks/useLogger';
 import { useMode } from './contexts/ModeContext';
 import { useData } from './contexts/DataContext';
 import { pullRequestService } from './services/pullRequestService';
 import { githubService } from './services/githubService';
-import { SidePanel } from './panels/side';
-
-const help = `Help:
-← → : Navigate columns
-h   : Toggle help
-/   : Enter edit mode
-s   : Show side panel
-q   : Quit`;
+import { SidePanel } from './layout/Side';
+import { Help } from './components/Help';
+import { BottomPanel } from './layout/Bottom';
 
 export const App: React.FC = () => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [showHelp, setShowHelp] = useState(false);
   const [showSidePanel, setShowSidePanel] = useState(false);
+  const [showBottomPanel, setShowBottomPanel] = useState(false);
   const { mode, switchToEdit } = useMode();
   const { actions } = useData();
 
@@ -28,7 +24,6 @@ export const App: React.FC = () => {
 
   useInput((input, key) => {
     if (mode !== 'command') return;
-
     switch (true) {
     case key.leftArrow:
       setSelectedIndex(prev => Math.max(0, prev - 1));
@@ -36,11 +31,14 @@ export const App: React.FC = () => {
     case key.rightArrow:
       setSelectedIndex(prev => prev + 1);
       break;
-    case input === 'h':
+    case input === 'h' || input === '?':
       setShowHelp(prev => !prev);
       break;
     case input === 's':
       setShowSidePanel(prev => !prev);
+      break;
+    case input === 'b' || input === '`':
+      setShowBottomPanel(prev => !prev);
       break;
     case input === '/':
       switchToEdit();
@@ -78,17 +76,18 @@ export const App: React.FC = () => {
       <Header />
       <Box flexGrow={1}>
         {showHelp ? (
-          <Box display='flex' padding={1}>
-            <Text>{help}</Text>
-          </Box>
+          <Help />
         ) : (
-          <Box width="100%" display='flex' flexDirection='row'>
-            <Board selectedIndex={selectedIndex} />
-            {showSidePanel && <SidePanel />}
+          <Box width="100%" minHeight={25} display='flex' flexDirection='column'>
+            <Box width="100%" display='flex' flexDirection='row'>
+              <Board selectedIndex={selectedIndex} />
+              {showSidePanel && <SidePanel />}
+            </Box>
+            {showBottomPanel && <BottomPanel />}
           </Box>
         )}
       </Box>
-      <Footer repo='test_repo' user='username' />
+      <Footer />
     </Box>
   );
 };

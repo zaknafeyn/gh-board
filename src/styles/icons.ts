@@ -9,7 +9,8 @@ export type TIconsType =
   | 'ok'
   | 'error'
   | 'help'
-  | 'update';
+  | 'update'
+  | 'chevron-right';
 
 export const icons: Record<TIconsType, number | number[]> = {
   'pull_request': 0xea64,
@@ -22,7 +23,8 @@ export const icons: Record<TIconsType, number | number[]> = {
   'ok': 0xf058,
   'error': 0xea87,
   'help': [0xdb80, 0xded6],
-  'update': [0xdb81,0xdeb0],
+  'update': [0xdb81, 0xdeb0],
+  'chevron-right': 0xf460,
 };
 
 export const getIcon = (icon: TIconsType) => {

@@ -10,6 +10,8 @@ import { colors } from '../styles/theme';
 import { InteractiveTable } from './InteractiveTable';
 import { prIconFormatter } from '../formatters/prIconFormatter';
 import { getIcon } from '../styles/icons';
+import open from 'open';
+import { PullRequest } from '../services/githubService';
 
 interface BoardProps {
   selectedIndex: number;
@@ -95,6 +97,8 @@ export const Board: React.FC<BoardProps> = ({ selectedIndex }) => {
       <InteractiveTable
         fields={fields}
         data={prData}
+        onOpen={(row: PullRequest) => open(row.url)}
+        showSelectionIndicator
       />
       <Box flexDirection="row">
         {columns.map((column, index) => (

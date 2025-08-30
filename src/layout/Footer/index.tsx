@@ -1,9 +1,10 @@
 import { FC } from 'react';
 import { Box, Text } from 'ink';
-import { colors } from '../styles/theme';
-import { Icon } from './Icon';
-import { githubService, PullRequest } from '../services/githubService';
-import { formatCompactDistanceToNow } from '../utils/formatCompactDistanceToNow';
+import { colors } from '../../styles/theme';
+import { Icon } from '../../components/Icon';
+import { githubService, PullRequest } from '../../services/githubService';
+import { formatCompactDistanceToNow } from '../../utils/formatCompactDistanceToNow';
+import { FilledBox } from '../../components/FilledBox';
 
 interface FooterProps {
   currentPullRequest?: PullRequest;
@@ -46,11 +47,11 @@ export const Footer: FC<FooterProps> = ({
         )}
       </Box>
       <Box>
-        <Box paddingX={1}>
+        <FilledBox width={10} height={1} padding={5} backgroundColor={colors.text.inverted}>
           <Text color={colors.text.primary} bold italic backgroundColor={colors.text.inverted}>
-          Help&nbsp;<Icon icon='help' />
+            Help&nbsp;<Icon icon='help' />
           </Text>
-        </Box>
+        </FilledBox>
       </Box>
     </Box>
   );

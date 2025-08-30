@@ -1,0 +1,47 @@
+query GetPullRequests($owner: String!, $name: String!, $first: Int = 20, $after: String) {
+  repository(owner: $owner, name: $name) {
+    pullRequests(first: $first, after: $after, states: [OPEN]) {
+      nodes {
+        id
+        number
+        title
+        url
+        state
+        author {
+          login
+          ... on User {
+            avatarUrl
+          }
+        }
+        createdAt
+        updatedAt
+        mergeable
+        reviewDecision
+        labels(first: 10) {
+          nodes {
+            name
+            color
+          }
+        }
+        assignees(first: 10) {
+          nodes {
+            login
+          }
+        }
+        reviewRequests(first: 10) {
+          nodes {
+            requestedReviewer {
+              ... on User {
+                login
+              }
+            }
+          }
+        }
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+    }
+  }
+}

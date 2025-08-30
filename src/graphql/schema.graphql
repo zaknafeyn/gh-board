@@ -1,0 +1,103 @@
+type Query {
+  repository(owner: String!, name: String!): Repository
+}
+
+type Repository {
+  id: ID!
+  name: String!
+  owner: RepositoryOwner!
+  url: String!
+  description: String
+  stargazerCount: Int!
+  forkCount: Int!
+  defaultBranchRef: Ref
+  pullRequests(first: Int, after: String, states: [PullRequestState!]): PullRequestConnection!
+}
+
+interface RepositoryOwner {
+  login: String!
+}
+
+type Organization implements RepositoryOwner {
+  login: String!
+}
+
+type Ref {
+  name: String!
+}
+
+type PullRequestConnection {
+  nodes: [PullRequest]
+  pageInfo: PageInfo!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  endCursor: String
+}
+
+type PullRequest {
+  id: ID!
+  number: Int!
+  title: String!
+  url: String!
+  state: PullRequestState!
+  author: Actor
+  createdAt: String!
+  updatedAt: String!
+  mergeable: MergeableState!
+  reviewDecision: PullRequestReviewDecision
+  labels(first: Int): LabelConnection!
+  assignees(first: Int): UserConnection!
+  reviewRequests(first: Int): ReviewRequestConnection!
+}
+
+interface Actor {
+  login: String!
+}
+
+type User implements Actor & RepositoryOwner {
+  login: String!
+  avatarUrl: String!
+}
+
+enum PullRequestState {
+  OPEN
+  CLOSED
+  MERGED
+}
+
+enum MergeableState {
+  MERGEABLE
+  CONFLICTING
+  UNKNOWN
+}
+
+enum PullRequestReviewDecision {
+  CHANGES_REQUESTED
+  APPROVED
+  REVIEW_REQUIRED
+}
+
+type LabelConnection {
+  nodes: [Label]
+}
+
+type Label {
+  name: String!
+  color: String!
+}
+
+type UserConnection {
+  nodes: [User]
+}
+
+type ReviewRequestConnection {
+  nodes: [ReviewRequest]
+}
+
+type ReviewRequest {
+  requestedReviewer: RequestedReviewer
+}
+
+union RequestedReviewer = User
