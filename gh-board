@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+# This script is used to run the compiled binary locally for dev purposes
+node  ./dist/index.js "$@"

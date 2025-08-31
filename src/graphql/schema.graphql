@@ -39,6 +39,7 @@ type PageInfo {
 type PullRequest {
   id: ID!
   number: Int!
+  isDraft: Boolean!
   title: String!
   url: String!
   state: PullRequestState!

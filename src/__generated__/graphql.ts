@@ -56,6 +56,7 @@ export interface PullRequest {
   author?: Maybe<Actor>;
   createdAt: Scalars['String']['output'];
   id: Scalars['ID']['output'];
+  isDraft: Scalars['Boolean']['output'];
   labels: LabelConnection;
   mergeable: MergeableState;
   number: Scalars['Int']['output'];
@@ -165,7 +166,7 @@ export type GetPullRequestsQueryVariables = Exact<{
   after?: InputMaybe<Scalars['String']['input']>;
 }>;
 
-export type GetPullRequestsQuery = { __typename?: 'Query', repository?: { __typename?: 'Repository', pullRequests: { __typename?: 'PullRequestConnection', nodes?: Array<{ __typename?: 'PullRequest', id: string, number: number, title: string, url: string, state: PullRequestState, createdAt: string, updatedAt: string, mergeable: MergeableState, reviewDecision?: PullRequestReviewDecision | null, author?: { __typename?: 'User', avatarUrl: string, login: string } | null, labels: { __typename?: 'LabelConnection', nodes?: Array<{ __typename?: 'Label', name: string, color: string } | null> | null }, assignees: { __typename?: 'UserConnection', nodes?: Array<{ __typename?: 'User', login: string } | null> | null }, reviewRequests: { __typename?: 'ReviewRequestConnection', nodes?: Array<{ __typename?: 'ReviewRequest', requestedReviewer?: { __typename?: 'User', login: string } | null } | null> | null } } | null> | null, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } } | null };
+export type GetPullRequestsQuery = { __typename?: 'Query', repository?: { __typename?: 'Repository', pullRequests: { __typename?: 'PullRequestConnection', nodes?: Array<{ __typename?: 'PullRequest', id: string, number: number, title: string, url: string, state: PullRequestState, isDraft: boolean, createdAt: string, updatedAt: string, mergeable: MergeableState, reviewDecision?: PullRequestReviewDecision | null, author?: { __typename?: 'User', avatarUrl: string, login: string } | null, labels: { __typename?: 'LabelConnection', nodes?: Array<{ __typename?: 'Label', name: string, color: string } | null> | null }, assignees: { __typename?: 'UserConnection', nodes?: Array<{ __typename?: 'User', login: string } | null> | null }, reviewRequests: { __typename?: 'ReviewRequestConnection', nodes?: Array<{ __typename?: 'ReviewRequest', requestedReviewer?: { __typename?: 'User', login: string } | null } | null> | null } } | null> | null, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } } | null };
 
 export type GetRepositoryQueryVariables = Exact<{
   owner: Scalars['String']['input'];
@@ -184,6 +185,7 @@ export const GetPullRequestsDocument = gql`
         title
         url
         state
+        isDraft
         author {
           login
           ... on User {

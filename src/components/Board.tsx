@@ -6,13 +6,14 @@ import { LoadingSpinner } from './LoadingSpinner';
 import { useLogger } from '../hooks/useLogger';
 import { useMode } from '../contexts/ModeContext';
 import { colors } from '../styles/theme';
-import { InteractiveTable } from './InteractiveTable';
+import { InteractiveTable, TableField } from './InteractiveTable';
 import { prIconFormatter } from '../formatters/prIconFormatter';
 import { getIcon } from '../styles/icons';
 import open from 'open';
 import { useGetPullRequestsQuery } from '../__generated__/graphql';
 import { githubService } from '../services/githubService';
 import { useLoadingState } from '../hooks/useLoadingState';
+import { compactRelative } from '../utils/formatCompactDistanceToNow';
 
 interface BoardProps {
   selectedIndex: number;
@@ -73,11 +74,15 @@ export const Board: React.FC<BoardProps> = ({ selectedIndex }) => {
   // Transform PRs into items for the Review column
   const prItems = pullRequests.map(pr => pr ? `#${pr.number}: ${pr.title}` : '');
 
+  type EnhancedPullRequest = NonNullable<typeof pullRequests[0]> & {
+    icon: string;
+  };
+
   const prData = useMemo(() => {
     return pullRequests.filter((pr): pr is NonNullable<typeof pr> => Boolean(pr)).map(pr => ({
       ...pr,
       icon: prIconFormatter(pr),
-    }));
+    })) as EnhancedPullRequest[];
   }, [pullRequests]);
 
   const isLoading = loading || loadingState.isLoading;
@@ -123,14 +128,30 @@ export const Board: React.FC<BoardProps> = ({ selectedIndex }) => {
     );
   }
 
-  const fields = [
+  const fields: TableField<EnhancedPullRequest>[] = [
     {
-      fieldName: 'icon',
+      value: (row: EnhancedPullRequest) => {
+        return row.isDraft ? getIcon('pull_request_draft') : getIcon('pull_request');
+      },
       header: getIcon('pull_request'),
+      minWidth: 2,
     },
     {
-      fieldName: 'title',
-      header: 'title',
+      value: (row: EnhancedPullRequest) => `#${row.number} ${row.title}`,
+      header: 'Title',
+      minWidth: 25,
+    },
+    {
+      // created
+      value: (row: EnhancedPullRequest) => compactRelative(new Date(row.createdAt)),
+      header: 'Created',
+      minWidth: 7,
+    },
+    {
+      // updated
+      value: (row: EnhancedPullRequest) => compactRelative(new Date(row.updatedAt)),
+      header: 'Updated',
+      minWidth: 7,
     },
   ];
 

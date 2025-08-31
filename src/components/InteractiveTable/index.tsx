@@ -6,14 +6,15 @@ import { useLogger } from '../../hooks/useLogger';
 import { useMode } from '../../contexts/ModeContext';
 import { Icon } from '../Icon';
 
-export interface TableField {
-  fieldName: string;
+export interface TableField<TRow = Record<string, unknown>> {
+  value: keyof TRow | ((row: TRow, index: number, data: TRow[]) => string);
   header: string;
   color?: string;
+  minWidth?: number;
 }
 
-export interface InteractiveTableProps<TRow extends Record<string, unknown> = Record<string, unknown>> {
-  fields: TableField[];
+export interface InteractiveTableProps<TRow = Record<string, unknown>> {
+  fields: TableField<TRow>[];
   data: Array<TRow>;
   isLoading?: boolean;
   onOpen?: (row: TRow) => void,
@@ -87,14 +88,14 @@ export const InteractiveTable = <TRow extends Record<string, unknown> = Record<s
       <Box borderStyle="single" borderColor={colors.border.primary}>
         <Box flexDirection="row" paddingX={1}>
           {showSelectionIndicator && (
-            <Box marginRight={2} minWidth={1}>
+            <Box marginRight={1} minWidth={1}>
               <Text color={colors.text.primary} bold>
                 {' '}
               </Text>
             </Box>
           )}
           {fields.map((field, index) => (
-            <Box key={field.fieldName} marginRight={index < fields.length - 1 ? 2 : 0} minWidth={15}>
+            <Box key={index} marginRight={index < fields.length - 1 ? 2 : 0} minWidth={field.minWidth ?? 15}>
               <Text color={field.color || colors.text.primary} bold>
                 {field.header}
               </Text>
@@ -112,16 +113,16 @@ export const InteractiveTable = <TRow extends Record<string, unknown> = Record<s
               paddingX={1}
             >
               {showSelectionIndicator && (
-                <Box marginRight={2} minWidth={1}>
+                <Box marginRight={1} minWidth={1}>
                   <Text color={rowIndex === selectedRow ? colors.text.primary : colors.text.secondary}>
                     {rowIndex === selectedRow ? <Icon icon='chevron-right'/> : ' '}
                   </Text>
                 </Box>
               )}
               {fields.map((field, fieldIndex) => (
-                <Box key={field.fieldName} marginRight={fieldIndex < fields.length - 1 ? 2 : 0} minWidth={15}>
+                <Box key={fieldIndex} marginRight={fieldIndex < fields.length - 1 ? 2 : 0} minWidth={field.minWidth ?? 15}>
                   <Text color={rowIndex === selectedRow ? colors.text.primary : colors.text.secondary}>
-                    {String(row[field.fieldName] || '')}
+                    {typeof field.value === 'function' ? field.value(row, rowIndex, data) : String(row[field.value])}
                   </Text>
                 </Box>
               ))}

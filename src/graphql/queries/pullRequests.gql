@@ -7,6 +7,7 @@ query GetPullRequests($owner: String!, $name: String!, $first: Int = 20, $after:
         title
         url
         state
+        isDraft
         author {
           login
           ... on User {

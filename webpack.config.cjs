@@ -1,7 +1,14 @@
 const path = require('path');
 
 module.exports = {
-  entry: './src/index.tsx',
+  // Tell webpack the root file of our console application
+  entry: {
+    'index.js': './src/index.tsx',
+    'gh-board-darwin-arm64': './src/index.tsx',
+    'gh-board-darwin-x86_64': './src/index.tsx',
+    'gh-board-linux-i386': './src/index.tsx',
+    'gh-board-linux-x86_64': './src/index.tsx',
+  },
   target: 'node',
   externalsPresets: {
     node: true,
@@ -22,7 +29,7 @@ module.exports = {
     },
   },
   output: {
-    filename: 'index.js',
+    filename: '[name]',
     path: path.resolve(__dirname, 'dist'),
     clean: true,
     module: true,
@@ -45,12 +52,15 @@ module.exports = {
               stage: Compilation.PROCESS_ASSETS_STAGE_OPTIMIZE_INLINE,
             },
             (assets) => {
-              const asset = assets['index.js'];
-              if (asset) {
-                const source = asset.source();
-                const newSource = '#!/usr/bin/env node\n' + source;
-                compilation.updateAsset('index.js', new compiler.webpack.sources.RawSource(newSource));
-              }
+              // Add shebang to all platform binaries
+              Object.keys(assets).forEach(assetName => {
+                if (assetName.startsWith('gh-board')) {
+                  const asset = assets[assetName];
+                  const source = asset.source();
+                  const newSource = '#!/usr/bin/env node\n' + source;
+                  compilation.updateAsset(assetName, new compiler.webpack.sources.RawSource(newSource));
+                }
+              });
             }
           );
         });
