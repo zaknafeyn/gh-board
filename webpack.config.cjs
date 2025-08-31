@@ -11,9 +11,6 @@ module.exports = {
     'gh-board-linux-x86_64': './src/index.tsx',
   },
   target: 'node',
-  externalsPresets: {
-    node: true,
-  },
   module: {
     rules: [
       {
@@ -33,14 +30,8 @@ module.exports = {
     filename: '[name]',
     path: path.resolve(__dirname, 'dist'),
     clean: true,
-    module: true,
-    chunkFormat: 'module',
-    library: {
-      type: 'module',
-    },
-  },
-  experiments: {
-    outputModule: true,
+    // disable chunks
+    chunkFormat: false
   },
   plugins: [
     // new CopyPlugin({
@@ -48,33 +39,7 @@ module.exports = {
     // }),
     new ShebangPlugin({ chmod: 0o755, shebangRegExp: /[\s\n\r]*(#!.*)[\s\n\r]*/gm }),
   ],
-  // plugins: [
-  //   {
-  //     apply: (compiler) => {
-  //       const { Compilation } = compiler.webpack;
-  //       compiler.hooks.compilation.tap('AddShebangPlugin', (compilation) => {
-  //         compilation.hooks.processAssets.tap(
-  //           {
-  //             name: 'AddShebangPlugin',
-  //             stage: Compilation.PROCESS_ASSETS_STAGE_OPTIMIZE_INLINE,
-  //           },
-  //           (assets) => {
-  //             // Add shebang to all platform binaries
-  //             Object.keys(assets).forEach(assetName => {
-  //               if (assetName.startsWith('gh-board')) {
-  //                 const asset = assets[assetName];
-  //                 const source = asset.source();
-  //                 const newSource = '#!/usr/bin/env node\n' + source;
-  //                 compilation.updateAsset(assetName, new compiler.webpack.sources.RawSource(newSource));
-  //               }
-  //             });
-  //           }
-  //         );
-  //       });
-  //     }
-  //   }
-  // ],
   optimization: {
-    minimize: false,
+    minimize: true,
   },
 };
