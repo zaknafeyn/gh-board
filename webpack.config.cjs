@@ -31,7 +31,11 @@ module.exports = {
     path: path.resolve(__dirname, 'dist'),
     clean: true,
     // disable chunks
-    chunkFormat: false
+    chunkFormat: false,
+    module: true,
+    library: {
+      type: 'module',
+    },
   },
   plugins: [
     // new CopyPlugin({
@@ -42,4 +46,7 @@ module.exports = {
   optimization: {
     minimize: true,
   },
+  experiments: {
+    outputModule: true
+  }
 };
