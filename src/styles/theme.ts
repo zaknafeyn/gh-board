@@ -15,6 +15,10 @@ const themes: Record<string, Theme> = {
       warning: '#f9e2af',
       success: '#a6e3a1',
       error: '#f38ba8',
+      merged: '#8250df',
+      open: '#1f883d',
+      closed: '#cf222e',
+      draft: '#6e7781',
     },
     background: {
       selected: '#535155',

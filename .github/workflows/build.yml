@@ -1,0 +1,54 @@
+name: Build
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Generate version
+        id: version
+        run: |
+          VERSION="v${{ vars.GH_BOARD_MAJOR_VERSION }}.${{ vars.GH_BOARD_MINOR_VERSION }}.${{ github.run_number }}"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Generated version: $VERSION"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Update package.json version
+        run: |
+          VERSION_NUMBER="${{ vars.GH_BOARD_MAJOR_VERSION }}.${{ vars.GH_BOARD_MINOR_VERSION }}.${{ github.run_number }}"
+          npm version $VERSION_NUMBER --no-git-tag-version
+
+      - name: Build application
+        run: npm run build
+
+      - name: Make binaries executable
+        run: |
+          chmod +x dist/gh-board-*
+          ls -la dist/gh-board-*
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: gh-board-binaries-${{ steps.version.outputs.version }}
+          path: |
+            dist/gh-board-darwin-arm64
+            dist/gh-board-darwin-x86_64  
+            dist/gh-board-linux-i386
+            dist/gh-board-linux-x86_64
+          retention-days: 30
+          if-no-files-found: error

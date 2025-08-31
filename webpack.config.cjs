@@ -1,4 +1,5 @@
 const path = require('path');
+const ShebangPlugin = require('webpack-shebang-plugin');
 
 module.exports = {
   // Tell webpack the root file of our console application
@@ -42,31 +43,37 @@ module.exports = {
     outputModule: true,
   },
   plugins: [
-    {
-      apply: (compiler) => {
-        const { Compilation } = compiler.webpack;
-        compiler.hooks.compilation.tap('AddShebangPlugin', (compilation) => {
-          compilation.hooks.processAssets.tap(
-            {
-              name: 'AddShebangPlugin',
-              stage: Compilation.PROCESS_ASSETS_STAGE_OPTIMIZE_INLINE,
-            },
-            (assets) => {
-              // Add shebang to all platform binaries
-              Object.keys(assets).forEach(assetName => {
-                if (assetName.startsWith('gh-board')) {
-                  const asset = assets[assetName];
-                  const source = asset.source();
-                  const newSource = '#!/usr/bin/env node\n' + source;
-                  compilation.updateAsset(assetName, new compiler.webpack.sources.RawSource(newSource));
-                }
-              });
-            }
-          );
-        });
-      }
-    }
+    // new CopyPlugin({
+    //   patterns: [{ from: 'gh-mindsight' }],
+    // }),
+    new ShebangPlugin({ chmod: 0o755, shebangRegExp: /[\s\n\r]*(#!.*)[\s\n\r]*/gm }),
   ],
+  // plugins: [
+  //   {
+  //     apply: (compiler) => {
+  //       const { Compilation } = compiler.webpack;
+  //       compiler.hooks.compilation.tap('AddShebangPlugin', (compilation) => {
+  //         compilation.hooks.processAssets.tap(
+  //           {
+  //             name: 'AddShebangPlugin',
+  //             stage: Compilation.PROCESS_ASSETS_STAGE_OPTIMIZE_INLINE,
+  //           },
+  //           (assets) => {
+  //             // Add shebang to all platform binaries
+  //             Object.keys(assets).forEach(assetName => {
+  //               if (assetName.startsWith('gh-board')) {
+  //                 const asset = assets[assetName];
+  //                 const source = asset.source();
+  //                 const newSource = '#!/usr/bin/env node\n' + source;
+  //                 compilation.updateAsset(assetName, new compiler.webpack.sources.RawSource(newSource));
+  //               }
+  //             });
+  //           }
+  //         );
+  //       });
+  //     }
+  //   }
+  // ],
   optimization: {
     minimize: false,
   },
