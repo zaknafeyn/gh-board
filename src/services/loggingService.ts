@@ -9,8 +9,10 @@ export class LoggingService {
 
   constructor(private ignoreLogs = false) {
     if (ignoreLogs) {
-      this.ensureLogDirectory();
+      return;
     }
+
+    this.ensureLogDirectory();
   }
 
   private ensureLogDirectory(): void {
