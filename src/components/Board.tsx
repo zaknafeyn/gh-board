@@ -1,53 +1,38 @@
-import React, { useMemo, useEffect, useState } from 'react';
 import { Box, Text } from 'ink';
-import { Column } from './Column';
-import { InputBox } from './InputBox';
-import { LoadingSpinner } from './LoadingSpinner';
-import { useLogger } from '../hooks/useLogger';
-import { useMode } from '../contexts/ModeContext';
-import { colors } from '../styles/theme';
-import { InteractiveTable, TableField } from './InteractiveTable';
-import { prIconFormatter } from '../formatters/prIconFormatter';
-import { getIcon } from '../styles/icons';
 import open from 'open';
+import { FC, useMemo } from 'react';
 import { useGetPullRequestsQuery } from '../__generated__/graphql';
-import { githubService } from '../services/githubService';
+import { useMode } from '../contexts/ModeContext';
+import { prIconFormatter } from '../formatters/prIconFormatter';
 import { useLoadingState } from '../hooks/useLoadingState';
+import { useLogger } from '../hooks/useLogger';
+import { useRepoInfo } from '../hooks/useRepoInfo';
+import { getIcon } from '../styles/icons';
+import { colors } from '../styles/theme';
 import { compactRelative } from '../utils/formatCompactDistanceToNow';
+import { InputBox } from './InputBox';
+import { InteractiveTable, TableField } from './InteractiveTable';
+import { LoadingSpinner } from './LoadingSpinner';
 
-interface BoardProps {
-  selectedIndex: number;
-}
+// interface BoardProps {
+// }
 
-export const Board: React.FC<BoardProps> = ({ selectedIndex }) => {
+export const Board: FC = () => {
   const logger = useLogger();
   const { mode } = useMode();
-  const [repo, setRepo] = useState<{owner: string; name: string} | null>(null);
+  // const [repo, setRepo] = useState<{owner: string; name: string} | null>(null);
   const loadingState = useLoadingState();
 
-  // Initialize GitHub service and get repository info
-  useEffect(() => {
-    const initializeService = async () => {
-      try {
-        await githubService.initialize();
-        const repoInfo = githubService.getRepository();
-        setRepo(repoInfo);
-      } catch (error) {
-        logger.error('Failed to initialize GitHub service:', error);
-      }
-    };
-
-    initializeService();
-  }, [logger]);
+  const { name, owner } = useRepoInfo();
 
   // Use generated GraphQL hook
   const { data, loading, error, refetch } = useGetPullRequestsQuery({
     variables: {
-      owner: repo?.owner || 'owner',
-      name: repo?.name || 'repo',
+      owner,
+      name,
       first: 20,
     },
-    skip: !repo, // Skip query if repo info is not available
+    skip: name === '' || owner === '', // Skip query if repo info is not available
     fetchPolicy: 'cache-and-network', // Ensure refetch works properly
   });
 
@@ -71,9 +56,6 @@ export const Board: React.FC<BoardProps> = ({ selectedIndex }) => {
     return data?.repository?.pullRequests?.nodes?.filter(Boolean) || [];
   }, [data]);
 
-  // Transform PRs into items for the Review column
-  const prItems = pullRequests.map(pr => pr ? `#${pr.number}: ${pr.title}` : '');
-
   type EnhancedPullRequest = NonNullable<typeof pullRequests[0]> & {
     icon: string;
   };
@@ -86,29 +68,6 @@ export const Board: React.FC<BoardProps> = ({ selectedIndex }) => {
   }, [pullRequests]);
 
   const isLoading = loading || loadingState.isLoading;
-
-  const columns = [
-    {
-      title: 'To Do',
-      items: ['Setup project structure', 'Add authentication', 'Create tests'],
-      color: colors.accent.red,
-    },
-    {
-      title: 'In Progress',
-      items: ['Implement board layout', 'Add keyboard navigation'],
-      color: colors.accent.yellow,
-    },
-    {
-      title: 'Review',
-      items: prItems.length > 0 ? prItems : ['No pull requests assigned'],
-      color: colors.accent.blue,
-    },
-    {
-      title: 'Done',
-      items: ['Initialize React app', 'Setup TypeScript', 'Configure Webpack'],
-      color: colors.accent.green,
-    },
-  ];
 
   if (isLoading) {
     return (
@@ -134,24 +93,38 @@ export const Board: React.FC<BoardProps> = ({ selectedIndex }) => {
         return row.isDraft ? getIcon('pull_request_draft') : getIcon('pull_request');
       },
       header: getIcon('pull_request'),
-      minWidth: 2,
+      width: 2,
     },
     {
       value: (row: EnhancedPullRequest) => `#${row.number} ${row.title}`,
       header: 'Title',
-      minWidth: 25,
+      width: 25,
     },
+    {
+      value: (row: EnhancedPullRequest) => (
+      <>
+          {row.additions !== 0 && <Text color={colors.text.success}>{`+${row.additions}`}</Text>}
+          {row.deletions !== 0 && (<>&nbsp;<Text color={colors.text.error}>{`-${row.deletions}`}</Text></>)}
+      </>
+      ),
+      header: getIcon('minus_plus'),
+      width: 11,
+      justifyContent: 'center'
+    },
+
     {
       // created
       value: (row: EnhancedPullRequest) => compactRelative(new Date(row.createdAt)),
-      header: 'Created',
-      minWidth: 7,
+      header: getIcon('created_at'),
+      width: 7,
+      justifyContent: 'center'
     },
     {
       // updated
       value: (row: EnhancedPullRequest) => compactRelative(new Date(row.updatedAt)),
-      header: 'Updated',
-      minWidth: 7,
+      header: getIcon('updated_at'),
+      width: 7,
+      justifyContent: 'center'
     },
   ];
 
@@ -166,17 +139,6 @@ export const Board: React.FC<BoardProps> = ({ selectedIndex }) => {
         onReloadRequested={handleRefetch}
         showSelectionIndicator
       />
-      <Box flexDirection="row">
-        {columns.map((column, index) => (
-          <Column
-            key={column.title}
-            title={column.title}
-            items={column.items}
-            color={column.color}
-            isSelected={index === selectedIndex}
-          />
-        ))}
-      </Box>
     </Box>
   );
 };

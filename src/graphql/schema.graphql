@@ -47,6 +47,13 @@ type PullRequest {
   createdAt: String!
   updatedAt: String!
   mergeable: MergeableState!
+  changedFiles: Int!
+  bodyText: String!
+  body: String!
+  additions: Int!
+  deletions: Int!
+  baseRefName: String!
+  headRefName: String!
   reviewDecision: PullRequestReviewDecision
   labels(first: Int): LabelConnection!
   assignees(first: Int): UserConnection!

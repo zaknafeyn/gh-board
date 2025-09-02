@@ -8,6 +8,13 @@ query GetPullRequests($owner: String!, $name: String!, $first: Int = 20, $after:
         url
         state
         isDraft
+        changedFiles
+        bodyText
+        body
+        additions
+        deletions
+        baseRefName
+        headRefName
         author {
           login
           ... on User {

@@ -12,7 +12,11 @@ export type TIconsType =
   | 'update'
   | 'chevron-right'
   | 'octocat'
-  | 'verified';
+  | 'verified'
+  | 'ellipsis'
+  | 'created_at'
+  | 'updated_at'
+  | 'minus_plus';
 
 export const icons: Record<TIconsType, number | number[]> = {
   'pull_request': 0xea64,
@@ -29,6 +33,10 @@ export const icons: Record<TIconsType, number | number[]> = {
   'chevron-right': 0xf460,
   'octocat': 0xeb27,
   'verified': 0xeb77,
+  'ellipsis': 0x2026,
+  'created_at': [0xdb86,0xdee3],
+  'updated_at': [0xdb86, 0xded3],
+  'minus_plus': [0xdb82,0xdd92],
 };
 
 export const getIcon = (icon: TIconsType) => {

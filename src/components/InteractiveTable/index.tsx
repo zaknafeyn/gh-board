@@ -1,16 +1,20 @@
-import { useState, useEffect } from 'react';
-import { Text, Box, useInput } from 'ink';
-import { colors } from '../../styles/theme';
-import { LoadingSpinner } from '../LoadingSpinner';
-import { useLogger } from '../../hooks/useLogger';
+import { Box, DOMElement, measureElement, Text, useInput } from 'ink';
+import { ReactNode, useEffect, useRef, useState } from 'react';
+import { useCurrentRow } from '../../contexts/CurrentRowContext';
 import { useMode } from '../../contexts/ModeContext';
+import { columnTextFormatter } from '../../formatters/columnTextFormatter';
+import { useLogger } from '../../hooks/useLogger';
+import { colors } from '../../styles/theme';
 import { Icon } from '../Icon';
+import { LoadingSpinner } from '../LoadingSpinner';
 
+const DEFAULT_COLUMN_WIDTH = 10;
 export interface TableField<TRow = Record<string, unknown>> {
-  value: keyof TRow | ((row: TRow, index: number, data: TRow[]) => string);
+  value: keyof TRow | ((row: TRow, index: number, data: TRow[]) => string | ReactNode);
   header: string;
   color?: string;
-  minWidth?: number;
+  width?: number;
+  justifyContent?: 'flex-start' | 'flex-end' | 'center' | undefined;
 }
 
 export interface InteractiveTableProps<TRow = Record<string, unknown>> {
@@ -32,6 +36,7 @@ export const InteractiveTable = <TRow extends Record<string, unknown> = Record<s
 }: InteractiveTableProps<TRow>) => {
   const [selectedRow, setSelectedRow] = useState(0);
   const { mode } = useMode();
+  const { setCurrentRow } = useCurrentRow<TRow>();
 
   const logger = useLogger();
 
@@ -69,13 +74,28 @@ export const InteractiveTable = <TRow extends Record<string, unknown> = Record<s
     }
   }, [data.length, selectedRow]);
 
+  // Update current row context when selection changes
+  useEffect(() => {
+    if (data.length > 0 && selectedRow >= 0 && selectedRow < data.length) {
+      setCurrentRow(data[selectedRow]);
+    } else {
+      setCurrentRow(null);
+    }
+  }, [selectedRow, data, setCurrentRow]);
+
+  const ref = useRef<DOMElement>(null);
+  if (ref.current)
+  {
+    logger.debug(JSON.stringify(measureElement(ref.current)));
+  }
+
   if (isLoading) {
     return <LoadingSpinner text="Loading table data..." />;
   }
 
   if (data.length === 0) {
     return (
-      <Box flexDirection="column">
+      <Box ref={ref} flexDirection="column">
         <Box borderStyle="single" borderColor={colors.border.primary}>
           <Text color={colors.text.faint}>No data available</Text>
         </Box>
@@ -95,7 +115,12 @@ export const InteractiveTable = <TRow extends Record<string, unknown> = Record<s
             </Box>
           )}
           {fields.map((field, index) => (
-            <Box key={index} marginRight={index < fields.length - 1 ? 2 : 0} minWidth={field.minWidth ?? 15}>
+            <Box
+              key={index}
+              marginRight={index < fields.length - 1 ? 1 : 0}
+              minWidth={field.width ?? DEFAULT_COLUMN_WIDTH}
+              justifyContent='center'
+            >
               <Text color={field.color || colors.text.primary} bold>
                 {field.header}
               </Text>
@@ -120,9 +145,17 @@ export const InteractiveTable = <TRow extends Record<string, unknown> = Record<s
                 </Box>
               )}
               {fields.map((field, fieldIndex) => (
-                <Box key={fieldIndex} marginRight={fieldIndex < fields.length - 1 ? 2 : 0} minWidth={field.minWidth ?? 15}>
+                <Box
+                  key={fieldIndex}
+                  marginRight={fieldIndex < fields.length - 1 ? 1 : 0}
+                  minWidth={field.width ?? DEFAULT_COLUMN_WIDTH}
+                  justifyContent={field.justifyContent}
+                >
                   <Text color={rowIndex === selectedRow ? colors.text.primary : colors.text.secondary}>
-                    {typeof field.value === 'function' ? field.value(row, rowIndex, data) : String(row[field.value])}
+                    {columnTextFormatter(
+                      typeof field.value === 'function' ? field.value(row, rowIndex, data) : String(row[field.value]),
+                      field.width || DEFAULT_COLUMN_WIDTH,
+                    )}
                   </Text>
                 </Box>
               ))}

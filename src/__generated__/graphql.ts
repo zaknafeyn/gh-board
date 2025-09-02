@@ -52,9 +52,16 @@ export interface PageInfo {
 
 export interface PullRequest {
   __typename?: 'PullRequest';
+  additions: Scalars['Int']['output'];
   assignees: UserConnection;
   author?: Maybe<Actor>;
+  baseRefName: Scalars['String']['output'];
+  body: Scalars['String']['output'];
+  bodyText: Scalars['String']['output'];
+  changedFiles: Scalars['Int']['output'];
   createdAt: Scalars['String']['output'];
+  deletions: Scalars['Int']['output'];
+  headRefName: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   isDraft: Scalars['Boolean']['output'];
   labels: LabelConnection;
@@ -68,13 +75,16 @@ export interface PullRequest {
   url: Scalars['String']['output'];
 }
 
+
 export interface PullRequestAssigneesArgs {
   first?: InputMaybe<Scalars['Int']['input']>;
 }
 
+
 export interface PullRequestLabelsArgs {
   first?: InputMaybe<Scalars['Int']['input']>;
 }
+
 
 export interface PullRequestReviewRequestsArgs {
   first?: InputMaybe<Scalars['Int']['input']>;
@@ -103,6 +113,7 @@ export interface Query {
   repository?: Maybe<Repository>;
 }
 
+
 export interface QueryRepositoryArgs {
   name: Scalars['String']['input'];
   owner: Scalars['String']['input'];
@@ -125,6 +136,7 @@ export interface Repository {
   stargazerCount: Scalars['Int']['output'];
   url: Scalars['String']['output'];
 }
+
 
 export interface RepositoryPullRequestsArgs {
   after?: InputMaybe<Scalars['String']['input']>;
@@ -166,14 +178,17 @@ export type GetPullRequestsQueryVariables = Exact<{
   after?: InputMaybe<Scalars['String']['input']>;
 }>;
 
-export type GetPullRequestsQuery = { __typename?: 'Query', repository?: { __typename?: 'Repository', pullRequests: { __typename?: 'PullRequestConnection', nodes?: Array<{ __typename?: 'PullRequest', id: string, number: number, title: string, url: string, state: PullRequestState, isDraft: boolean, createdAt: string, updatedAt: string, mergeable: MergeableState, reviewDecision?: PullRequestReviewDecision | null, author?: { __typename?: 'User', avatarUrl: string, login: string } | null, labels: { __typename?: 'LabelConnection', nodes?: Array<{ __typename?: 'Label', name: string, color: string } | null> | null }, assignees: { __typename?: 'UserConnection', nodes?: Array<{ __typename?: 'User', login: string } | null> | null }, reviewRequests: { __typename?: 'ReviewRequestConnection', nodes?: Array<{ __typename?: 'ReviewRequest', requestedReviewer?: { __typename?: 'User', login: string } | null } | null> | null } } | null> | null, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } } | null };
+
+export type GetPullRequestsQuery = { __typename?: 'Query', repository?: { __typename?: 'Repository', pullRequests: { __typename?: 'PullRequestConnection', nodes?: Array<{ __typename?: 'PullRequest', id: string, number: number, title: string, url: string, state: PullRequestState, isDraft: boolean, changedFiles: number, bodyText: string, body: string, additions: number, deletions: number, baseRefName: string, headRefName: string, createdAt: string, updatedAt: string, mergeable: MergeableState, reviewDecision?: PullRequestReviewDecision | null, author?: { __typename?: 'User', avatarUrl: string, login: string } | null, labels: { __typename?: 'LabelConnection', nodes?: Array<{ __typename?: 'Label', name: string, color: string } | null> | null }, assignees: { __typename?: 'UserConnection', nodes?: Array<{ __typename?: 'User', login: string } | null> | null }, reviewRequests: { __typename?: 'ReviewRequestConnection', nodes?: Array<{ __typename?: 'ReviewRequest', requestedReviewer?: { __typename?: 'User', login: string } | null } | null> | null } } | null> | null, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } } | null };
 
 export type GetRepositoryQueryVariables = Exact<{
   owner: Scalars['String']['input'];
   name: Scalars['String']['input'];
 }>;
 
+
 export type GetRepositoryQuery = { __typename?: 'Query', repository?: { __typename?: 'Repository', id: string, name: string, url: string, description?: string | null, stargazerCount: number, forkCount: number, owner: { __typename?: 'Organization', login: string } | { __typename?: 'User', login: string }, defaultBranchRef?: { __typename?: 'Ref', name: string } | null } | null };
+
 
 export const GetPullRequestsDocument = gql`
     query GetPullRequests($owner: String!, $name: String!, $first: Int = 20, $after: String) {
@@ -186,6 +201,13 @@ export const GetPullRequestsDocument = gql`
         url
         state
         isDraft
+        changedFiles
+        bodyText
+        body
+        additions
+        deletions
+        baseRefName
+        headRefName
         author {
           login
           ... on User {
@@ -246,17 +268,17 @@ export const GetPullRequestsDocument = gql`
  * });
  */
 export function useGetPullRequestsQuery(baseOptions: ApolloReactHooks.QueryHookOptions<GetPullRequestsQuery, GetPullRequestsQueryVariables> & ({ variables: GetPullRequestsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return ApolloReactHooks.useQuery<GetPullRequestsQuery, GetPullRequestsQueryVariables>(GetPullRequestsDocument, options);
-}
+        const options = {...defaultOptions, ...baseOptions}
+        return ApolloReactHooks.useQuery<GetPullRequestsQuery, GetPullRequestsQueryVariables>(GetPullRequestsDocument, options);
+      }
 export function useGetPullRequestsLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<GetPullRequestsQuery, GetPullRequestsQueryVariables>) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return ApolloReactHooks.useLazyQuery<GetPullRequestsQuery, GetPullRequestsQueryVariables>(GetPullRequestsDocument, options);
-}
+          const options = {...defaultOptions, ...baseOptions}
+          return ApolloReactHooks.useLazyQuery<GetPullRequestsQuery, GetPullRequestsQueryVariables>(GetPullRequestsDocument, options);
+        }
 export function useGetPullRequestsSuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<GetPullRequestsQuery, GetPullRequestsQueryVariables>) {
-  const options = baseOptions === ApolloReactHooks.skipToken ? baseOptions : { ...defaultOptions, ...baseOptions };
-  return ApolloReactHooks.useSuspenseQuery<GetPullRequestsQuery, GetPullRequestsQueryVariables>(GetPullRequestsDocument, options);
-}
+          const options = baseOptions === ApolloReactHooks.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return ApolloReactHooks.useSuspenseQuery<GetPullRequestsQuery, GetPullRequestsQueryVariables>(GetPullRequestsDocument, options);
+        }
 export type GetPullRequestsQueryHookResult = ReturnType<typeof useGetPullRequestsQuery>;
 export type GetPullRequestsLazyQueryHookResult = ReturnType<typeof useGetPullRequestsLazyQuery>;
 export type GetPullRequestsSuspenseQueryHookResult = ReturnType<typeof useGetPullRequestsSuspenseQuery>;
@@ -298,17 +320,17 @@ export const GetRepositoryDocument = gql`
  * });
  */
 export function useGetRepositoryQuery(baseOptions: ApolloReactHooks.QueryHookOptions<GetRepositoryQuery, GetRepositoryQueryVariables> & ({ variables: GetRepositoryQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return ApolloReactHooks.useQuery<GetRepositoryQuery, GetRepositoryQueryVariables>(GetRepositoryDocument, options);
-}
+        const options = {...defaultOptions, ...baseOptions}
+        return ApolloReactHooks.useQuery<GetRepositoryQuery, GetRepositoryQueryVariables>(GetRepositoryDocument, options);
+      }
 export function useGetRepositoryLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<GetRepositoryQuery, GetRepositoryQueryVariables>) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return ApolloReactHooks.useLazyQuery<GetRepositoryQuery, GetRepositoryQueryVariables>(GetRepositoryDocument, options);
-}
+          const options = {...defaultOptions, ...baseOptions}
+          return ApolloReactHooks.useLazyQuery<GetRepositoryQuery, GetRepositoryQueryVariables>(GetRepositoryDocument, options);
+        }
 export function useGetRepositorySuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<GetRepositoryQuery, GetRepositoryQueryVariables>) {
-  const options = baseOptions === ApolloReactHooks.skipToken ? baseOptions : { ...defaultOptions, ...baseOptions };
-  return ApolloReactHooks.useSuspenseQuery<GetRepositoryQuery, GetRepositoryQueryVariables>(GetRepositoryDocument, options);
-}
+          const options = baseOptions === ApolloReactHooks.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return ApolloReactHooks.useSuspenseQuery<GetRepositoryQuery, GetRepositoryQueryVariables>(GetRepositoryDocument, options);
+        }
 export type GetRepositoryQueryHookResult = ReturnType<typeof useGetRepositoryQuery>;
 export type GetRepositoryLazyQueryHookResult = ReturnType<typeof useGetRepositoryLazyQuery>;
 export type GetRepositorySuspenseQueryHookResult = ReturnType<typeof useGetRepositorySuspenseQuery>;

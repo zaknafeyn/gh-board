@@ -23,6 +23,11 @@ export interface PullRequest {
 class GitHubService {
   private graphqlWithAuth: typeof graphql | null = null;
   private currentRepo: Repository | null = null;
+  private _initialized = false;
+
+  get Initialized(): boolean {
+    return this._initialized;
+  }
 
   async initialize(): Promise<void> {
     const token = await authService.getGithubToken();
@@ -34,6 +39,7 @@ class GitHubService {
     });
 
     this.currentRepo = await this.getCurrentRepository();
+    this._initialized = true;
   }
 
   private async getCurrentRepository(): Promise<Repository> {
